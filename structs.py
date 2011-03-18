@@ -234,10 +234,11 @@ class LCMStruct(baseio.TagInheritance, baseio.IncludePasting, baseio.OctaveCode)
         pass
         
     def to_python(self):
-        """This emits Python classes (mainly just with attributes)
-        based on the messages described in XML, along with hashes for
-        the enums since LCM doesn't implement enum types."""
-        print "Compiling XML directly to python classes is not implemented. --MP"
+        """This emits The LCM Python class"""
+
+        # import the class modules, like ap/sim/vis/etc
+        class_module = __import__(self['classname'])
+        return getattr(class_module, self['type'])()
 
 class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
     def __init__(self, enum, parent):
