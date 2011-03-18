@@ -21,24 +21,31 @@ from os import environ
 import sys
 import time
 import select
-import lcm
 import argparse
+import lcm
 
-default_max_log_size_MB = 100
 select_timeout = 1.0
 
-# put these in configuration:
-logfile_extension = ".lcm_log"
-logfile_directory = "apps/logs"  # relative to conftron folder
+##################### set paths, import conftron, get genconfig #########################
+# set up paths
+ap_project_root = environ.get('AP_PROJECT_ROOT')
+if ap_project_root == None:
+    raise NameError("please set the AP_PROJECT_ROOT environment variable")
+sys.path.append( ap_project_root+"/conftron/python/" )
+sys.path.append( ap_project_root+"/conftron/" )
+
+# get conftron configuration
+import configuration, genconfig
+
 
 ############# a bunch of command line switches to thank matt for conftron ##################
 parser = argparse.ArgumentParser(description='lightweight LCM logger')
 
 parser.add_argument('-a', dest='airframe', type=str,
                     help='airframe name e.g. wing7 or m5 (for settings, currently all telemetry is the same)')
-parser.add_argument('-f', dest='logfile', type=str, help='specify output logfile, if you do not include an extension then '+logfile_extension+' is used')
+parser.add_argument('-f', dest='logfile', type=str, help='specify output logfile, if you do not include an extension then '+genconfig.logfile_extension+' is used')
 parser.add_argument('-t', dest='end_time', type=float, help='specify a time to stop logging after')
-parser.add_argument('-m', dest='max_log_size_MB', type=float, default=default_max_log_size_MB, help='specify max logfile size in MB, default == '+str(default_max_log_size_MB))
+parser.add_argument('-m', dest='max_log_size_MB', type=float, default=genconfig.default_max_log_size_MB, help='specify max logfile size in MB, default == '+str(genconfig.default_max_log_size_MB))
 parser.add_argument('-o', dest='overwrite', action="store_true", default=False, help='overwrite logfile without asking')
 parser.add_argument('-q', dest='quiet', action="store_true", default=False, help='suppress all non-error output')
 parser.add_argument('-v', dest='verbose', action="store_true", default=False, help='extra output')
@@ -52,10 +59,10 @@ tm = time.localtime()
 if args.logfile:
     # if it doesn't have an extension, add one
     if len(args.logfile.split('.')) < 2:
-        logfile = args.logfile+logfile_extension
+        logfile = args.logfile+genconfig.logfile_extension
 else:
     # default logfile based on local date/time
-    logfile = time.strftime("log_%Y_%m_%d__%Hh_%Mm_%Ss_%Z", time.localtime())+logfile_extension
+    logfile = time.strftime( genconfig.logfile_name_format, time.localtime())
 
 # print output
 if not args.quiet:
@@ -69,20 +76,9 @@ if args.verbose:
     print ''
 
 
-##################### parse xml #########################
-# set up paths
-ap_project_root = environ.get('AP_PROJECT_ROOT')
-if ap_project_root == None:
-    raise NameError("please set the AP_PROJECT_ROOT environment variable to use Conftron driver")
-sys.path.append( ap_project_root+"/conftron/python/" )
-sys.path.append( ap_project_root+"/conftron/" )
-
-# get conftron configuration
-import configuration
+###################  setup lcm  ###################
 conf = configuration.Configuration(args.airframe)
 
-
-###################  setup lcm  ###################
 lc = lcm.LCM()
 
 # flatten the telemetry into a list of messages
@@ -93,7 +89,7 @@ for tc in conf.telemetry:
             telemetry.append(t)
 
 # open the log
-full_logfile = ap_project_root+"/conftron/"+logfile_directory+"/"+logfile
+full_logfile = genconfig.logfile_directory+"/"+logfile
 if not args.quiet:
     print 'opening logfile \"'+full_logfile+'\"'
 try:
