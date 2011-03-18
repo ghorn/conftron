@@ -61,8 +61,6 @@ lcm:
 	$(Q)lcm-gen -p $(LCM_TYPES) --ppath python/
 	@echo ----- Generating LCM Java interface -----
 	$(Q)lcm-gen -j $(LCM_TYPES) --jmkdir --jpath java/
-	$(Q)javac -cp upstream/lcm-java/lcm.jar java/*/*.java
-	$(Q)sh ./build_java.sh
 
 gen: 
 	@echo
@@ -95,6 +93,9 @@ lib: $(LIBOBJ)
 	$(Q)rm *stub.o &>/dev/null || echo
 
 compile: lib $(OBJ) 
+	@echo ----- Compiling Java Bindings -----
+	$(Q)javac -cp upstream/lcm-java/lcm.jar java/*/*.java
+	$(Q)sh ./build_java.sh
 
 stubs/%stub.o : stubs/%stub.c
 	@echo LIBCC $@
