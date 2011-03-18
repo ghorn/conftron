@@ -383,9 +383,8 @@ class CStructClass(baseio.CHeader, baseio.LCMFile, baseio.CCode, baseio.Searchab
     def codegen(self):
         self.to_structs_h()
         self.to_structs_lcm()
-        if self.name == "emlc":
-            [s.to_eml() for s in self.structs]
-            self.to_emlc_macro_wrappers()
+        [s.to_eml() for s in self.structs]
+        self.to_emlc_macro_wrappers()
 
     def _filter_structs(self, structs):
         die = 0
