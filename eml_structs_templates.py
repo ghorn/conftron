@@ -24,7 +24,13 @@ function %(classname)s_lcm_send_%(type)s( %(type)s_in_ ) %%#eml
 
 %(type)s_ = %(classname)s_%(type)s( %(type)s_in_, [1,1] );
 
-eml.ceval('emlc_lcm_send_%(type)s', eml.rref(%(type)s_));
+if isempty(eml.target)
+    %% Executing in MATLAB
+    %% do nothing for now  
+else
+    %% simulating in Embedded MATLAB.
+    eml.ceval('emlc_lcm_send_%(type)s', eml.rref(%(type)s_));
+end
 
 end
 """
@@ -39,12 +45,13 @@ end
 
 #############  STRUCTS  #################
 eml_constructor_template = ["""\
-function %(type)s_out_ = %(classname)s_%(type)s(%(type)s_in_, n) %%#eml
+function %(type)s_out_full_ = %(classname)s_%(type)s(%(type)s_in_, n) %%#eml
 
 %% constructor:
 """,
 """
 if nargin == 0
+    %(type)s_out_full_ = %(type)s_out_;
     return;
 end
 
