@@ -50,7 +50,7 @@ Q ?= @
 all: 
 	$(Q)$(MAKE) -C . clean
 	$(Q)$(MAKE) -C . gen
-	$(Q)$(MAKE) -C . compile -j100
+	$(Q)$(MAKE) -C . compile -j32
 
 engage: all
 
