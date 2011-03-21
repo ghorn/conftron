@@ -4,6 +4,7 @@ auto/*.h
 *.pyc
 *.a
 *.so
+*.DS_Store
 java/
 
 # lcm build
