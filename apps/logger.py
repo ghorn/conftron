@@ -21,6 +21,7 @@ from os import environ
 import sys
 import time
 import select
+import tarfile
 import argparse
 import lcm
 
@@ -89,14 +90,20 @@ for tc in conf.telemetry:
             telemetry.append(t)
 
 # open the log
-full_logfile = genconfig.logfile_directory+"/"+logfile
+full_logfile = genconfig.logfile_directory+"/"+logfile+'_'+str(args.airframe)+genconfig.logfile_extension
 if not args.quiet:
     print 'opening logfile \"'+full_logfile+'\"'
+
 try:
     log = lcm.EventLog(full_logfile, mode="w", overwrite=args.overwrite)
 except ValueError as ve:
     print ve
     exit(1)
+
+# archive the conf folder
+tar = tarfile.open( genconfig.logfile_directory+"/"+logfile+"_conf.tar.gz","w:gz")
+tar.add( genconfig.config_folder, arcname=logfile+"_conf" )
+tar.close()
 
 # subscribe to all messages
 def handler(channel, data):

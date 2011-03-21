@@ -38,7 +38,7 @@ classes_file = "classes.dat"
 reserved_tag_names = ['array', 'comment', 'unit', 'ptr', 'cl', 'name', 'varname', 'type', 'fields', 'structs', 'messages', 'settings']
 
 # logging
-logfile_extension = ".lcm_log"
 logfile_directory = ap_project_root+"/conftron/apps/logs"
-default_max_log_size_MB = 100
-logfile_name_format = "log_%Y_%m_%d__%Hh_%Mm_%Ss_%Z"+logfile_extension
+default_max_log_size_MB = 300
+logfile_name_format = "log_%Y_%m_%d__%Hh_%Mm_%Ss_%Z" # airframe name added automatically
+logfile_extension = ".lcm_log"
