@@ -29,7 +29,7 @@ if isempty(eml.target)
     %% do nothing for now  
 else
     %% simulating in Embedded MATLAB.
-    eml.ceval('emlc_lcm_send_%(type)s', eml.rref(%(type)s_));
+    eml.ceval('%(classname)s_lcm_send_%(type)s', eml.rref(%(type)s_));
 end
 
 end

@@ -187,20 +187,37 @@ when to send your messages.
 """
 
 emlc_telemetry_template ="""\
-function %(classname)s_telemetry_%(type)s_%(name)s(%(name)s_) %%#eml
+function %(classname)s_telemetry_%(type)s_%(name)s(%(name)s_in_) %%#eml
 
 persistent counter;
 
 if isempty(counter)
-  counter = 1;
+    counter = 1;
 end
 
 counter = counter - 1;
 
 if counter <= 0
-  counter = %(simrate)s;
-  %(classname)s_lcm_send_%(type)s(%(name)s_);
+    counter = %(simrate)s;
+
+    if isempty(eml.target)
+        %% Executing in MATLAB
+        %% do nothing for now  
+    else
+        %% simulating in Embedded MATLAB.
+        %(name)s_ = %(classname)s_%(type)s( %(name)s_in_, [1,1] );
+        eml.ceval('%(classname)s_telemetry_send_%(type)s_%(name)s', eml.rref(%(name)s_));
+    end
+
 end
+
+end
+"""
+
+emlc_telemetry_dummy_template ="""\
+function %(classname)s_telemetry_%(type)s_%(name)s(%(name)s_in_) %%#eml
+
+%% dummy file to keep simulink from choking
 
 end
 """

@@ -410,7 +410,7 @@ class CStructClass(baseio.CHeader, baseio.LCMFile, baseio.CCode, baseio.Searchab
 
     def to_emlc_macro_wrappers(self):
         def structs_f(cf):
-            cf.write('#include <emlc_telemetry.h>\n')
+            cf.write('#include <'+self.name+'_telemetry.h>\n')
             [cf.write("\n#define %(classname)s_lcm_send_%(type)s(msg) %(classname)s_lcm_send(msg, %(type)s)" % m) for m in self.structs]
         self.to_h('octave/emlc_macro_wrappers/'+self.name+'_macro_wrappers', structs_f)
 

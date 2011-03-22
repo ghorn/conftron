@@ -62,10 +62,17 @@ void %(classname)s_%(varname)s_send(int counter); \n""" % self
         self.to_c_no_h(filename, stub_f)
 
     def to_telemetry_emlc(self):
+        # real files
         filename = "octave/telemetry/%(classname)s_telemetry_%(type)s_%(varname)s" % self
         def out_fcn(cf):
             cf.write(emlc_telemetry_template % self)
         self.to_octave_code(filename, out_fcn)
+
+        # dummy files
+        dummy_filename = "octave/telemetry_dummy/%(classname)s_telemetry_%(type)s_%(varname)s" % self
+        def dummy_out_fcn(cf):
+            cf.write(emlc_telemetry_dummy_template % self)
+        self.to_octave_code(dummy_filename, dummy_out_fcn)
 
 class Telemetry(baseio.CHeader,
                 baseio.LCMFile,
@@ -212,3 +219,9 @@ class Telemetry(baseio.CHeader,
 
     def to_telemetry_emlc(self):
         [m.to_telemetry_emlc() for m in self.messages]
+
+        def eml_telem_macro_wrappers_f(cf):
+            cf.write('#include <'+self.name+'_telemetry.h>\n')
+            for m in self.messages:
+                cf.write("\n#define %(classname)s_telemetry_send_%(type)s_%(name)s(msg) %(classname)s_lcm_send_chan(msg, %(type)s, \"%(channel)s\")" % m) 
+        self.to_h('octave/emlc_macro_wrappers/'+self.name+'_telemetry_macro_wrappers', eml_telem_macro_wrappers_f)
