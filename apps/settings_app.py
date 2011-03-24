@@ -84,8 +84,11 @@ class TextSliderGroup(wx.BoxSizer):
 
 # this is one "line" or "entry" in the list of settings
 class TextSlider(wx.BoxSizer):
-    def get_float_value(self):
-        return self.float_min + (self.float_max - self.float_min)*float(self.slider.GetValue())/float(self.N)
+    def slider_to_value(self):
+        return self.range[self.slider.GetValue()]
+
+    def value_to_slider(self, value):
+        return self.range.index(min(self.range,key=lambda x:abs(x-value)))
 
     def __init__(self, frame, message, field):
         wx.BoxSizer.__init__(self, wx.HORIZONTAL)
@@ -93,33 +96,37 @@ class TextSlider(wx.BoxSizer):
         self.field = field
         self.message = message
 
-        self.float_min = float(self.field['min'])
-        self.float_max = float(self.field['max'])
+        _min = eval(self.field['min'])
+        _max = eval(self.field['max'])
+        _step = eval(self.field['step'])
 
-        self.N = int((self.float_max-self.float_min)/float(self.field['step']))
-        float_0 = float(self.field['default'])
-        int_0 = int(float_0/float(self.field['step']))
+        if isinstance( _min, int) and isinstance( _max, int) and isinstance( _step, int) and (_max - _min) % _step == 0:
+            self.range = range( _min, _max + 1, _step )
+            self.N = len(self.range)
+        else:
+            self.N = int(round((_max - _min)/_step + 1))
+            self.range = [ _min + float(k)*(_max - _min)/(self.N - 1.0) for k in range(0,self.N)]
 
         position = (10,10)
         size = (300,50)
         style = wx.SL_HORIZONTAL # | wx.SL_AUTOTICKS
 
         # set up attributes
-        self.slider = wx.Slider(frame, -1, int_0, 0, self.N, position, size, style)
+        self.slider = wx.Slider(frame, -1, self.value_to_slider(float(self.field['default'])), 0, self.N - 1, position, size, style)
         self.slider.SetPageSize(1)
         self.potential_value_text = wx.TextCtrl(frame, -1, "")
         self.name_text = wx.StaticText(frame, -1, self.field['parentname']+"."+self.field['name'])
         self.current_value_text = wx.TextCtrl(frame, -1, "", style=wx.TE_READONLY)
 
         # draw current text
-        self.potential_value_text.SetValue(str(self.get_float_value()))
+        self.potential_value_text.SetValue(str(self.slider_to_value()))
         self.current_value_text.SetValue('???')
 
         # callback
         frame.Bind(wx.EVT_SLIDER, self.slider_update, self.slider)
 
         # set object's value
-        setattr(self.message, self.field['name'], self.get_float_value())
+        setattr(self.message, self.field['name'], self.slider_to_value())
 
         # add objects to sizer
         self.Add(self.name_text, 0, wx.EXPAND)
@@ -131,7 +138,7 @@ class TextSlider(wx.BoxSizer):
         self.current_value_text.SetValue(str(getattr(ap_message, self.field['name'])))
 
     def slider_update(self, event):
-        val = self.get_float_value()
+        val = self.slider_to_value()
         self.potential_value_text.SetValue(str(val))
         setattr(self.message, self.field['name'], val)
 
