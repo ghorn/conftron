@@ -24,6 +24,7 @@ void
 {
   %(classname)s_lcm_init(provider);
   %(classname)s_lcm_subscribe_chan(%(type)s, &%(classname)s_%(varname)s_setter, NULL, "%(classname)s_%(type)s_%(varname)s_set");
+  %(classname)s_lcm_subscribe_chan(%(type)s, &%(classname)s_%(varname)s_resetter, NULL, "%(classname)s_%(type)s_%(varname)s_reset");
 }
 """
 
@@ -84,6 +85,17 @@ void %(classname)s_%(varname)s_setter(const lcm_recv_buf_t *rbuf,
                                       const char *channel,
                                       const %(classname)s_%(type)s *msg,
                                       void *user);
+"""
+
+lcm_settings_reset_template = """
+static void 
+%(classname)s_%(varname)s_resetter(const lcm_recv_buf_t *rbuf __attribute__((unused)),
+                                const char *channel __attribute__((unused)),
+                                const %(classname)s_%(type)s *new_data __attribute__((unused)),
+                                void *user __attribute__((unused)))
+{
+"""+lcm_settings_init_null_template.rstrip('\\')+"""
+}
 """
 
 lcm_settings_func_template = """
