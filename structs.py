@@ -235,10 +235,18 @@ class LCMStruct(baseio.TagInheritance, baseio.IncludePasting, baseio.OctaveCode)
         
     def to_python(self):
         """This emits The LCM Python class"""
-
         # import the class modules, like ap/sim/vis/etc
         class_module = __import__(self['classname'])
-        return getattr(class_module, self['type'])()
+
+        msg = getattr(class_module, self['type'])()
+
+        for m in self['members']:
+            member_struct = self.parent.search(m['type'])
+            if member_struct != None:
+                setattr( msg, m['name'], member_struct.to_python() )
+
+        return msg
+        
 
 class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
     def __init__(self, enum, parent):
@@ -335,7 +343,13 @@ class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
         pass
 
     def to_python(self):
-        print "Compiling XML directly to python classes is not implemented. --MP"
+        """This emits The LCM Python Enum"""
+        # import the class modules, like ap/sim/vis/etc
+        class_module = __import__(self['classname'])
+
+        return getattr(class_module, self['type'])()
+
+
 
 class CStructClass(baseio.CHeader, baseio.LCMFile, baseio.CCode, baseio.Searchable, baseio.IncludePasting):
     def __init__(self, name, cl, structs, path, filename):
