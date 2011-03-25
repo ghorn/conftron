@@ -181,7 +181,7 @@ given the specified bounded range of [%(min)s, %(max)s].
 
 ## emlc
 emlc_settings_template = ["""\
-function %(varname)s_out_ = %(classname)s_setting_%(varname)s(%(varname)s_in_)
+function %(varname)s_out_ = %(classname)s_setting_%(varname)s(%(varname)s_in_) %%#eml
 
 if nargin == 1
     %(varname)s_out_ = %(classname)s_%(type)s(%(varname)s_in_);
@@ -199,8 +199,14 @@ if isempty(eml.target)
 else
     %% simulating in Embedded MATLAB
     %% use the lcm c function
-    eml.ceval('%(classname)s_setting_get_%(type)s_%(varname)s', eml.wref(%(varname)s_out_) );
+    eml.ceval('%(classname)s_get_setting_%(type)s_%(varname)s', eml.wref(%(varname)s_out_) );
 end
 
 end\
+"""]
+
+emlc_settings_get_setting_c_wrapper_template = ["""\
+void %(classname)s_get_setting_%(type)s_%(varname)s( void * setting_ext)""","""{
+  memcpy( setting_ext, &%(varname)s, sizeof(%(type)s));
+}
 """]

@@ -230,7 +230,8 @@ class Settings(baseio.CHeader,
     def to_settings_h(self):
         self.settings_functions()
         def settings_f(cf):
-            cf.write("#include \"%(classname)s_types.h\"\n\n" % self)
+            cf.write("#include \"lcm_interface.h\"\n" )
+            cf.write("#include \"%(classname)s_types.h\"\n" % self)
             cf.write("#include \"%(classname)s_telemetry.h\"\n\n" % self)
             cf.write("#ifdef __cplusplus\n")
             cf.write("extern \"C\"{\n")
@@ -245,12 +246,10 @@ class Settings(baseio.CHeader,
         self.to_h(self.name + "_settings", settings_f)
 
     def to_settings_emlc(self):
+        # eml files
         for s in self.settings:
-
             filename = "%(classname)s_setting_%(type)s_%(varname)s" % s
-
             default_template = "%(varname)s_out_.%(name)s = %(default)s;\n"
-
             def dummy_out_fcn(cf):
                 cf.write(emlc_settings_template[0] % s )
                 cf.write("\n% defaults:\n")
@@ -266,3 +265,23 @@ class Settings(baseio.CHeader,
 
             self.to_octave_code( "octave/settings_dummy/"+filename, dummy_out_fcn)
             self.to_octave_code("octave/settings/"+filename, out_fcn)
+
+        # c files
+        def c_fcn(cf):
+            for s in self.settings:
+                cf.write("%(type)s %(varname)s;\n" % s)
+            cf.write("\n")
+            for s in self.settings:
+                cf.write("#include <settings/%(classname)s_%(type)s_%(varname)s.h>\n" %s)
+            cf.write("\n")
+            for s in self.settings:
+                cf.write(''.join(emlc_settings_get_setting_c_wrapper_template) % s)
+        def h_fcn(cf):
+#            cf.write("#include <%(classname)s_settings.h>\n\n" % self)
+            cf.write("#include <%(classname)s_types.h>\n\n" % self)
+            for s in self.settings:
+                cf.write(emlc_settings_get_setting_c_wrapper_template[0] % s + ";\n" )
+            
+        filename = "%(name)s_settings_wrappers" % self
+        self.to_c_specify_path( "octave/emlc_c_wrappers/", filename, c_fcn)
+        self.to_h_specify_path( "octave/emlc_c_wrappers/", filename, h_fcn)

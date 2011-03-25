@@ -224,4 +224,4 @@ class Telemetry(baseio.CHeader,
             cf.write('#include <'+self.name+'_telemetry.h>\n')
             for m in self.messages:
                 cf.write("\n#define %(classname)s_telemetry_send_%(type)s_%(name)s(msg) %(classname)s_lcm_send_chan(msg, %(type)s, \"%(channel)s\")" % m) 
-        self.to_h('octave/emlc_macro_wrappers/'+self.name+'_telemetry_macro_wrappers', eml_telem_macro_wrappers_f)
+        self.to_h('octave/emlc_c_wrappers/'+self.name+'_telemetry_macro_wrappers', eml_telem_macro_wrappers_f)
