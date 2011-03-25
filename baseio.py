@@ -21,7 +21,7 @@ import genconfig, sys, collections
 from xml.etree import ElementTree as ET
 import xml.parsers.expat as expat
 
-h_file_head = """
+h_file_head = """\
 /* This file is part of conftron.  
  * 
  * Copyright (C) 2011 Matt Peddie <peddie@jobyenergy.com>
@@ -68,7 +68,10 @@ class CHeader():
         pass
 
     def to_h(self, name, output_f):
-        cf = open(name + ".h", 'w')
+        self.to_h_specify_path( "", name, output_f )
+
+    def to_h_specify_path(self, path, name, output_f):
+        cf = open( path+name + ".h", 'w')
         cf.write(h_file_head + "\n")
         hname = name.replace("/", "_").upper()
         cf.write("#ifndef __" + hname + "_H__\n")
@@ -94,11 +97,15 @@ extern "C"{
 class CCode():
     def __init__(self):
         pass
+
     def to_c(self, name, output_f):
+        self.to_c_specify_path( "", name, output_f)
+
+    def to_c_specify_path(self, path, name, output_f):
         def tmp_output_f(cf):
             cf.write("#include \"" + name + ".h\"\n\n")
             output_f(cf)
-        self.to_c_no_h(name, tmp_output_f)
+        self.to_c_no_h(path+name, tmp_output_f)
 
     def to_c_no_h(self, name, output_f):
         cf = open(name + ".c", "w")
