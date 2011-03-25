@@ -157,7 +157,8 @@ class Configuration(baseio.Searchable):
                                                  cl.getchildren(), 
                                                  cscs, 
                                                  genconfig.config_folder, 
-                                                 self.settingsfile))
+                                                 self.settingsfile,
+                                                 self.search_structs))
                 self.settings.append(reduce(lambda x, y: x.merge(y), loc))
                 del seth[clname]
             if telemh.has_key(clname):

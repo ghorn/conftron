@@ -17,7 +17,7 @@
 ## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 ## 02110-1301, USA.
 
-import genconfig, baseio
+import genconfig, baseio, structs
 from settings_templates import *
 
 class LCMSettingField(baseio.TagInheritance):
@@ -25,17 +25,42 @@ class LCMSettingField(baseio.TagInheritance):
     def __init__(self, hsh, parent):
         self.__dict__.update(hsh)
         self._inherit(parent)
-        if self.has_key('absmax'):
-            self.min = -float(self.absmax)
-            self.max = float(self.absmax)
         self.parent = parent
         self.parentname = parent.name
+
+        # recursion to get field_type/field_struct for nested structs
+        def go_deep(name, lcm_struct):
+            names = name.split('.',1)
+            field_type = [m for m in lcm_struct['members'] if m['name'] == names[0]][0]['type']
+            field_struct = self.search_structs(self.classname, field_type)
+
+            if len(names) == 1:
+                return (field_type, field_struct)
+            else:
+                return go_deep(names[1], field_struct)
+
+        (self.field_type, self.field_struct) = go_deep(self.name, self.setting_struct)
+
+        # different required tags for Enums and non-enums
+        if isinstance(self.field_struct, structs.LCMEnum):
+            self.required_tags = ['default']
+            self.min = 0
+            self.max = len(self.field_struct['fields']) - 1
+            self.step = 1
+        else:
+            if self.has_key('absmax'):
+                self.min = -float(self.absmax)
+                self.max = float(self.absmax)
+
         self._musthave(parent, parse_settings_noval)
         self.classname = parent.classname
         parent.die += self._filter()
 
     def field_setting(self):
-        return lcm_settings_field_template_mm % self
+        if isinstance(self.field_struct, structs.LCMEnum):
+            return lcm_settings_field_enum_template_mm % self
+        else:
+            return lcm_settings_field_template_mm % self
 
     def _filter(self):
         die = 0
@@ -46,30 +71,37 @@ class LCMSettingField(baseio.TagInheritance):
         ## Default values outside the range given by the bounds
         ## don't make sense either.
         die = 0
-        if (float(self['min']) > float(self['default'])
-            or float(self['max']) < float(self['default'])):
-            print parse_settings_badval % {"sp":'default', 
-                                           "f":self['name'], 
-                                           "s":self.parent['name'], 
-                                           "max":self['max'], 
-                                           "min":self['min'], 
-                                           "val":self['default']} 
-            die += 1
-        if float(self['step']) > (float(self['max']) - float(self['min'])):
-            print parse_settings_badval % {"sp":'default', 
-                                           "f":self['name'], 
-                                           "s":self.parent['name'], 
-                                           "max":self['max'], 
-                                           "min":self['min'], 
-                                           "val":self['step']} 
-            die += 1
+        if isinstance(self.field_struct, structs.LCMEnum):
+            if self['default'] not in self.field_struct['fields']:
+                die += 1
+        else:
+            if (float(self['min']) > float(self['default'])
+                or float(self['max']) < float(self['default'])):
+                print parse_settings_badval % {"sp":'default', 
+                                               "f":self['name'], 
+                                               "s":self.parent['name'], 
+                                               "max":self['max'], 
+                                               "min":self['min'], 
+                                               "val":self['default']} 
+                die += 1
+            if float(self['step']) > (float(self['max']) - float(self['min'])):
+                print parse_settings_badval % {"sp":'default', 
+                                               "f":self['name'], 
+                                               "s":self.parent['name'], 
+                                               "max":self['max'], 
+                                               "min":self['min'], 
+                                               "val":self['step']} 
+                die += 1
         return die
+
+
 
 class LCMSetting(baseio.CHeader, baseio.LCMFile, baseio.CCode, baseio.TagInheritance, baseio.IncludePasting):
     def __init__(self, s, parent):
         self.__dict__.update(s.attrib)
         self.classname = parent.name
         self._inherit(parent)
+        self.setting_struct = self.search_structs(self.classname, self.type)
         self.lcm_folder = genconfig.lcm_folder
         self.die = 0
         self.make_fields(s.getchildren())
@@ -112,11 +144,12 @@ class Settings(baseio.CHeader,
                baseio.TagInheritance, 
                baseio.Searchable,
                baseio.IncludePasting):
-    def __init__(self, name, children, class_structs, path, filename):
+    def __init__(self, name, children, class_structs, path, filename, search_structs):
         self.name = name
         self.path = path
         self.file = filename
         self.classname = name
+        self.search_structs = search_structs
         self._filter_settings(children)
         self.class_struct_includes = self._class_struct_includes(class_structs)
 

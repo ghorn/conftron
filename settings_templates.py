@@ -123,6 +123,19 @@ lcm_settings_field_template_mm = """
   }
 """
 
+lcm_settings_field_enum_template_mm = """
+  // enum
+  if (new_data == NULL) {
+    %(varname)s.%(name)s = %(default)s;
+  } else {
+    if (new_data->%(name)s.val > %(max)s || new_data->%(name)s.val < %(min)s){
+      printf("conftron settings enum %(varname)s.%(name)s received out of bounds value (%%d)\\n", new_data->%(name)s.val);
+      exit(1);
+    }
+    %(varname)s.%(name)s = (%(field_type)s) new_data->%(name)s.val;
+  }
+"""
+
 lcm_send_settings_template = """
 void
 %(classname)s_%(varname)s_set(%(classname)s_%(type)s *new_data)
