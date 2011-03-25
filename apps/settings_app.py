@@ -34,7 +34,7 @@ if ap_project_root == None:
 sys.path.append( ap_project_root+"/conftron" )
 sys.path.append( ap_project_root+"/conftron/python" )
 
-import configuration
+import configuration, structs
 
 class LcmListener(threading.Thread):
     def __init__(self, lc, lc_reading_event):
@@ -58,8 +58,8 @@ class TextSliderGroup(wx.BoxSizer):
         self.lc = lc
         self.lc_event = lc_event
         self.name = setting['name']
-        self.message = setting['struct']['to_python']()
-        self.decoder = setting['struct']['to_python']()
+        self.message = setting['setting_struct']['to_python']()
+        self.decoder = setting['setting_struct']['to_python']()
         
         self.text_sliders = []
         for field in setting['fields']:
@@ -88,7 +88,10 @@ class TextSlider(wx.BoxSizer):
         return self.range[self.slider.GetValue()]
 
     def value_to_slider(self, value):
-        return self.range.index(min(self.range,key=lambda x:abs(x-value)))
+        if isinstance(self.field['field_struct'], structs.LCMEnum):
+            return self.range.index(value)
+        else:
+            return self.range.index(min(self.range,key=lambda x:abs(x-float(value))))
 
     def __init__(self, frame, message, field):
         wx.BoxSizer.__init__(self, wx.HORIZONTAL)
@@ -96,23 +99,29 @@ class TextSlider(wx.BoxSizer):
         self.field = field
         self.message = message
 
-        _min = eval(self.field['min'])
-        _max = eval(self.field['max'])
-        _step = eval(self.field['step'])
-
-        if isinstance( _min, int) and isinstance( _max, int) and isinstance( _step, int) and (_max - _min) % _step == 0:
-            self.range = range( _min, _max + 1, _step )
+        if isinstance(self.field['field_struct'], structs.LCMEnum):
+            # enums
+            self.range = self.field['field_struct']['fields']
             self.N = len(self.range)
         else:
-            self.N = int(round((_max - _min)/_step + 1))
-            self.range = [ _min + float(k)*(_max - _min)/(self.N - 1.0) for k in range(0,self.N)]
+            # non-enums
+            _min = eval(self.field['min'])
+            _max = eval(self.field['max'])
+            _step = eval(self.field['step'])
+    
+            if isinstance( _min, int) and isinstance( _max, int) and isinstance( _step, int) and (_max - _min) % _step == 0:
+                self.range = range( _min, _max + 1, _step )
+                self.N = len(self.range)
+            else:
+                self.N = int(round((_max - _min)/_step + 1))
+                self.range = [ _min + float(k)*(_max - _min)/(self.N - 1.0) for k in range(0,self.N)]
 
         position = (10,10)
         size = (300,50)
         style = wx.SL_HORIZONTAL # | wx.SL_AUTOTICKS
 
         # set up attributes
-        self.slider = wx.Slider(frame, -1, self.value_to_slider(float(self.field['default'])), 0, self.N - 1, position, size, style)
+        self.slider = wx.Slider(frame, -1, self.value_to_slider(self.field['default']), 0, self.N - 1, position, size, style)
         self.slider.SetPageSize(1)
         self.potential_value_text = wx.TextCtrl(frame, -1, "")
         self.name_text = wx.StaticText(frame, -1, self.field['parentname']+"."+self.field['name'])
@@ -125,8 +134,7 @@ class TextSlider(wx.BoxSizer):
         # callback
         frame.Bind(wx.EVT_SLIDER, self.slider_update, self.slider)
 
-        # set object's value
-        setattr(self.message, self.field['name'], self.slider_to_value())
+        self.set_message_attribute( self.message, self.field['name'], self.slider_to_value() )
 
         # add objects to sizer
         self.Add(self.name_text, 0, wx.EXPAND)
@@ -135,12 +143,38 @@ class TextSlider(wx.BoxSizer):
         self.Add(self.current_value_text, 0, wx.EXPAND)
 
     def update_ap_value(self, ap_message):
-        self.current_value_text.SetValue(str(getattr(ap_message, self.field['name'])))
+        self.current_value_text.SetValue(str(self.get_message_attribute(ap_message, self.field['name'])))
 
     def slider_update(self, event):
         val = self.slider_to_value()
         self.potential_value_text.SetValue(str(val))
-        setattr(self.message, self.field['name'], val)
+        self.set_message_attribute(self.message, self.field['name'], val)
+
+    def get_message_attribute(self, message, fieldname):
+            names = fieldname.split('.',1)
+
+            if len(names) == 1:
+                if isinstance(self.field['field_struct'], structs.LCMEnum):
+                    enum_struct = getattr( message, fieldname )
+                    return self.field['field_struct']['fields'][getattr( enum_struct, 'val')]
+                else:
+                    return getattr( message, fieldname )
+            else:
+                return self.get_message_attribute(getattr(message,names[0]), names[1])
+
+
+    def set_message_attribute(self, message, fieldname, value):
+            names = fieldname.split('.',1)
+
+            if len(names) == 1:
+                if isinstance(self.field['field_struct'], structs.LCMEnum):
+                    enum_struct = getattr( message, fieldname )
+                    setattr( enum_struct, 'val', self.field['field_struct']['fields'].index(value) )
+                else:
+                    setattr( message, fieldname, value )
+            else:
+                self.set_message_attribute(getattr(message,names[0]), names[1], value)
+
 
 
 class GuiPage(wx.ScrolledWindow):
@@ -190,10 +224,6 @@ class Frame(wx.Frame):
             for s in sc['settings']:
                 if not (s['has_key']('settingsapp') and s['settingsapp'] == "ignore"):
                     self.settings.append(s)
-
-        # get the struct for each setting
-        for s in self.settings:
-            s['struct'] = self.conf.search_structs(s['classname'], s['type'])
 
         # if setting doesn't have guipage, set guipage to "unsorted"
         for s in self.settings:
