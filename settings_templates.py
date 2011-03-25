@@ -179,3 +179,28 @@ for field `%(f)s' in section `%(s)s'.  This value doesn't make sense
 given the specified bounded range of [%(min)s, %(max)s].
 """
 
+## emlc
+emlc_settings_template = ["""\
+function %(varname)s_out_ = %(classname)s_setting_%(varname)s(%(varname)s_in_)
+
+if nargin == 1
+    %(varname)s_out_ = %(classname)s_%(type)s(%(varname)s_in_);
+    return;
+end
+
+%(varname)s_out_ = %(classname)s_%(type)s();
+""",
+"""
+if isempty(eml.target)
+    %% Executing in MATLAB
+    %% fill in defaults
+""",
+"""\
+else
+    %% simulating in Embedded MATLAB
+    %% use the lcm c function
+    eml.ceval('%(classname)s_setting_get_%(type)s_%(varname)s', eml.wref(%(varname)s_out_) );
+end
+
+end\
+"""]

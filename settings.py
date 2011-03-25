@@ -141,6 +141,7 @@ class LCMSetting(baseio.CHeader, baseio.LCMFile, baseio.CCode, baseio.TagInherit
 class Settings(baseio.CHeader, 
                baseio.LCMFile, 
                baseio.CCode, 
+               baseio.OctaveCode,
                baseio.TagInheritance, 
                baseio.Searchable,
                baseio.IncludePasting):
@@ -173,6 +174,7 @@ class Settings(baseio.CHeader,
         self.null_calls = "\n".join([lcm_settings_init_null_template % s for s in self.settings])
         self.to_settings_h()
         self.settings_nops()
+        self.to_settings_emlc()
 
     def init_call(self):
         return "  %(classname)s_settings_init(provider); \\\n" % self
@@ -242,3 +244,25 @@ class Settings(baseio.CHeader,
             cf.write(lcm_check_call_template % self);
         self.to_h(self.name + "_settings", settings_f)
 
+    def to_settings_emlc(self):
+        for s in self.settings:
+
+            filename = "%(classname)s_setting_%(type)s_%(varname)s" % s
+
+            default_template = "%(varname)s_out_.%(name)s = %(default)s;\n"
+
+            def dummy_out_fcn(cf):
+                cf.write(emlc_settings_template[0] % s )
+                cf.write("\n% defaults:\n")
+                for f in s['fields']:
+                    cf.write( default_template % f )
+                cf.write("\nend")
+            def out_fcn(cf):
+                cf.write(emlc_settings_template[0] % s)
+                cf.write(emlc_settings_template[1] % s)
+                for f in s['fields']:
+                    cf.write( "    "+default_template % f )
+                cf.write(emlc_settings_template[2] % s)
+
+            self.to_octave_code( "octave/settings_dummy/"+filename, dummy_out_fcn)
+            self.to_octave_code("octave/settings/"+filename, out_fcn)
