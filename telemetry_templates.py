@@ -205,7 +205,7 @@ if counter <= 0
         %% do nothing for now  
     else
         %% simulating in Embedded MATLAB.
-        %(name)s_ = %(classname)s_%(type)s( %(name)s_in_, [1,1] );
+        %(name)s_ = %(type)s( %(name)s_in_, [1,1] );
         eml.ceval('%(classname)s_telemetry_send_%(type)s_%(name)s', eml.rref(%(name)s_));
     end
 

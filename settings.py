@@ -250,17 +250,24 @@ class Settings(baseio.CHeader,
         for s in self.settings:
             filename = "%(classname)s_setting_%(type)s_%(varname)s" % s
             default_template = "%(varname)s_out_.%(name)s = %(default)s;\n"
+            enum_default_template = "%(varname)s_out_.%(name)s = %(field_type)s.%(default)s;\n"
             def dummy_out_fcn(cf):
                 cf.write(emlc_settings_template[0] % s )
                 cf.write("\n% defaults:\n")
                 for f in s['fields']:
-                    cf.write( default_template % f )
+                    if isinstance(f['field_struct'], structs.LCMEnum):
+                        cf.write( enum_default_template % f )
+                    else:
+                        cf.write( default_template % f )
                 cf.write("\nend")
             def out_fcn(cf):
                 cf.write(emlc_settings_template[0] % s)
                 cf.write(emlc_settings_template[1] % s)
                 for f in s['fields']:
-                    cf.write( "    "+default_template % f )
+                    if isinstance(f['field_struct'], structs.LCMEnum):
+                        cf.write( "    "+enum_default_template % f )
+                    else:
+                        cf.write( "    "+default_template % f )
                 cf.write(emlc_settings_template[2] % s)
 
             self.to_octave_code( "octave/settings_dummy/"+filename, dummy_out_fcn)

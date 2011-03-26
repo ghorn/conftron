@@ -184,11 +184,11 @@ emlc_settings_template = ["""\
 function %(varname)s_out_ = %(classname)s_setting_%(varname)s(%(varname)s_in_) %%#eml
 
 if nargin == 1
-    %(varname)s_out_ = %(classname)s_%(type)s(%(varname)s_in_);
+    %(varname)s_out_ = %(type)s(%(varname)s_in_);
     return;
 end
 
-%(varname)s_out_ = %(classname)s_%(type)s();
+%(varname)s_out_ = %(type)s();
 """,
 """
 if isempty(eml.target)

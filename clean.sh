@@ -9,14 +9,13 @@ rm -f auto/*.c auto/*.h &>/dev/null
 rm -rf java/* &>/dev/null
 rm -f octave/lcm_send/*.m &>/dev/null
 rm -f octave/lcm_send_dummy/*.m &>/dev/null
-rm -f octave/constructors/*.m &>/dev/null
+rm -rf octave/constructors/* &>/dev/null
 rm -f octave/telemetry/*.m &>/dev/null
 rm -f octave/settings/*.m &>/dev/null
 rm -f octave/settings_dummy/*.m &>/dev/null
 rm -f octave/emlc_c_wrappers/*.c &>/dev/null
 rm -f octave/emlc_c_wrappers/*.h &>/dev/null
-rm -f octave/enum_decoders/*.h &>/dev/null
-rm -f octave/enum_encoders/*.h &>/dev/null
+rm -f octave/protected_names/*.m &>/dev/null
 rm -rf python/*
 rm -f telemetry/*.c telemetry/*.h &>/dev/null
 rm -f settings/*.c settings/*.h
