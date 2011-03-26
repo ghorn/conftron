@@ -28,9 +28,9 @@ class Configuration(baseio.Searchable):
         self.telemetry = []
         self.settings = []
         if airframename:
-            self.settingsfile = airframename + "_settings.xml"
+            self.settingsfile = genconfig.settings_config_folder + airframename + "_settings.xml"
         else:
-            self.settingsfile = "settings.xml"
+            self.settingsfile = genconfig.settings_config_folder + "settings.xml"
         self.telemetryfile = "telemetry.xml"
         self.typesfile = "types.xml"
 
@@ -130,7 +130,7 @@ class Configuration(baseio.Searchable):
         basestructs.reverse()
         (telemh, basetelem) = self.parse_classes(ET.ElementTree().parse(genconfig.config_folder + self.telemetryfile).getchildren(),
                                                  {}, [], [])
-        (seth, baseset) = self.parse_classes(ET.ElementTree().parse(genconfig.config_folder + self.settingsfile).getchildren(),
+        (seth, baseset) = self.parse_classes(ET.ElementTree().parse( self.settingsfile).getchildren(),
                                              {}, [], [])
 
         self.classnames = set(structh.keys() + telemh.keys() + seth.keys())
