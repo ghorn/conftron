@@ -60,7 +60,7 @@ class TextSliderGroup(wx.BoxSizer):
         self.name = setting['name']
         self.message = setting['setting_struct']['to_python']()
         self.decoder = setting['setting_struct']['to_python']()
-        
+
         self.text_sliders = []
         for field in setting['fields']:
             ts = TextSlider(guipage, self.message, field)
@@ -116,15 +116,15 @@ class TextSlider(wx.BoxSizer):
                 self.N = int(round((_max - _min)/_step + 1))
                 self.range = [ _min + float(k)*(_max - _min)/(self.N - 1.0) for k in range(0,self.N)]
 
-        position = (10,10)
-        size = (300,50)
+        position = (0,0)
+        size = (300,20)
         style = wx.SL_HORIZONTAL # | wx.SL_AUTOTICKS
 
         # set up attributes
         self.slider = wx.Slider(frame, -1, self.value_to_slider(self.field['default']), 0, self.N - 1, position, size, style)
         self.slider.SetPageSize(1)
         self.potential_value_text = wx.TextCtrl(frame, -1, "")
-        self.name_text = wx.StaticText(frame, -1, self.field['parentname']+"."+self.field['name'])
+        self.name_text = wx.StaticText(frame, -1, self.field['name'])
         self.current_value_text = wx.TextCtrl(frame, -1, "", style=wx.TE_READONLY)
 
         # draw current text
@@ -137,10 +137,10 @@ class TextSlider(wx.BoxSizer):
         self.set_message_attribute( self.message, self.field['name'], self.slider_to_value() )
 
         # add objects to sizer
-        self.Add(self.name_text, 0, wx.EXPAND)
-        self.Add(self.slider, 0)#, wx.EXPAND)
-        self.Add(self.potential_value_text, 0, wx.EXPAND)
-        self.Add(self.current_value_text, 0, wx.EXPAND)
+        self.Add(self.current_value_text, 0 )
+        self.Add(self.potential_value_text, 0 )
+        self.Add(self.slider, 0 )
+        self.Add(self.name_text, 0 )
 
     def update_ap_value(self, ap_message):
         self.current_value_text.SetValue(str(self.get_message_attribute(ap_message, self.field['name'])))
@@ -186,16 +186,21 @@ class GuiPage(wx.ScrolledWindow):
         top_sizer = wx.BoxSizer(wx.VERTICAL)
 
         for s in self.settings:
-            horiz_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
+            v_sizer = wx.BoxSizer(wx.VERTICAL)
             slider_group = TextSliderGroup(self, lc, s, lc_event)
-            button = wx.Button(self, label = "commit")
+            button = wx.Button(self, label = "commit", size=(160,30))
             self.Bind(wx.EVT_BUTTON, slider_group.commit_button_callback, button)
 
-            horiz_sizer.Add(slider_group, 5, wx.ALIGN_LEFT)
-            horiz_sizer.Add(button, 1, wx.ALIGN_RIGHT)
+            # name and commit button
+            h_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            name_text = wx.StaticText(self, -1, s['name'])
+            h_sizer.Add(button, 0)
+            h_sizer.Add(name_text, 0, wx.ALIGN_CENTER | wx.LEFT, 25)
+
+            v_sizer.Add(h_sizer, 0)
+            v_sizer.Add(slider_group, 5, wx.BOTTOM, 20)
             
-            top_sizer.Add(horiz_sizer)
+            top_sizer.Add(v_sizer)
         
             s['subscription'] = slider_group.subscription
 
@@ -242,7 +247,7 @@ class Frame(wx.Frame):
 
 
     def __init__(self, title, aircraft):
-        wx.Frame.__init__(self, None, title=title, pos=(150,150), size=(350,200))
+        wx.Frame.__init__(self, None, title=title, pos=(150,150), size=(650,500))
 
         self.aircraft = aircraft
 
