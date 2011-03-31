@@ -123,6 +123,7 @@ class LCMSetting(baseio.CHeader, baseio.LCMFile, baseio.CCode, baseio.TagInherit
                 cf.write(lcm_settings_init_custom_chan_template % self)
             else:
                 cf.write(lcm_settings_reset_template % self)
+                cf.write(lcm_settings_query_template % self)
                 cf.write(lcm_settings_init_template % self)
             cf.write(lcm_settings_func_template % self)
         self.to_h(filename, sf)
