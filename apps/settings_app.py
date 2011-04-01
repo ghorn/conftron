@@ -96,6 +96,7 @@ class TextSlider(wx.BoxSizer):
     def __init__(self, frame, message, field):
         wx.BoxSizer.__init__(self, wx.HORIZONTAL)
 
+        self.frame = frame
         self.field = field
         self.message = message
 
@@ -121,18 +122,19 @@ class TextSlider(wx.BoxSizer):
         style = wx.SL_HORIZONTAL # | wx.SL_AUTOTICKS
 
         # set up attributes
-        self.slider = wx.Slider(frame, -1, self.value_to_slider(self.field['default']), 0, self.N - 1, position, size, style)
+        self.slider = wx.Slider(self.frame, -1, self.value_to_slider(self.field['default']), 0, self.N - 1, position, size, style)
         self.slider.SetPageSize(1)
-        self.potential_value_text = wx.TextCtrl(frame, -1, "")
-        self.name_text = wx.StaticText(frame, -1, self.field['name'])
-        self.current_value_text = wx.TextCtrl(frame, -1, "", style=wx.TE_READONLY)
+        self.potential_value_text = wx.TextCtrl(self.frame, -1, "")
+        self.name_text = wx.StaticText(self.frame, -1, self.field['name'])
+        self.current_value_text = wx.TextCtrl(self.frame, -1, "", style=wx.TE_READONLY)
 
         # draw current text
         self.potential_value_text.SetValue(str(self.slider_to_value()))
         self.current_value_text.SetValue('???')
 
         # callback
-        frame.Bind(wx.EVT_SLIDER, self.slider_update, self.slider)
+        self.frame.Bind(wx.EVT_SLIDER, self.slider_update, self.slider)
+        self.frame.Bind(wx.EVT_TEXT, self.text_update, source=self.potential_value_text)
 
         self.set_message_attribute( self.message, self.field['name'], self.slider_to_value() )
 
@@ -147,8 +149,20 @@ class TextSlider(wx.BoxSizer):
 
     def slider_update(self, event):
         val = self.slider_to_value()
+        # first unbind text handler to avoid the signal bouncing back and forth
+        self.frame.Unbind(wx.EVT_TEXT, source=self.potential_value_text)
         self.potential_value_text.SetValue(str(val))
+        self.frame.Bind(wx.EVT_TEXT, self.text_update, source=self.potential_value_text)
         self.set_message_attribute(self.message, self.field['name'], val)
+
+    def text_update(self, event):
+        val = self.potential_value_text.GetValue()
+        if val == '':
+            return
+        evalval = eval(val)
+        if isinstance( evalval, float) or isinstance( evalval, int):
+            self.slider.SetValue(self.value_to_slider(evalval))
+            self.set_message_attribute(self.message, self.field['name'], evalval)
 
     def get_message_attribute(self, message, fieldname):
             names = fieldname.split('.',1)
