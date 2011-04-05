@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ## This file is part of conftron.  
 ## 
 ## Copyright (C) 2011 Greg Horn <ghorn@stanford.edu>
