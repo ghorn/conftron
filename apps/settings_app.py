@@ -243,7 +243,7 @@ class Frame(wx.Frame):
         self.settings = []
         for sc in self.conf.settings:
             for s in sc['settings']:
-                if not (s['has_key']('settingsapp') and s['settingsapp'] == "ignore"):
+                if not ((s['has_key']('settingsapp') and s['settingsapp'] == "ignore")):
                     self.settings.append(s)
 
         # if setting doesn't have guipage, set guipage to "unsorted"

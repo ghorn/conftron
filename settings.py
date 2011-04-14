@@ -19,6 +19,7 @@
 
 import genconfig, baseio, structs
 from settings_templates import *
+import re
 
 class LCMSettingField(baseio.TagInheritance):
     required_tags = ['default', 'step', 'min', 'max']
@@ -30,6 +31,7 @@ class LCMSettingField(baseio.TagInheritance):
 
         # recursion to get field_type/field_struct for nested structs
         def go_deep(name, lcm_struct):
+            name = re.sub('\[[0-9]+\]','',name)
             names = name.split('.',1)
             field_type = [m for m in lcm_struct['members'] if m['name'] == names[0]][0]['type']
             field_struct = self.search_structs(self.classname, field_type)

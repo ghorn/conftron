@@ -244,12 +244,11 @@ class LCMStruct(baseio.TagInheritance, baseio.IncludePasting, baseio.OctaveCode)
 
         msg = getattr(class_module, self['type'])()
 
-        for m in self['members']:
-            member_struct = self.parent.search(m['type'])
-            if member_struct != None:
-                setattr( msg, m['name'], member_struct.to_python() )
+        class FakeBuf():
+            def read(self,num):
+                return ''.join(['0' for haha in range(0,num)])
 
-        return msg
+        return msg._decode_one(FakeBuf())
         
 
 class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
