@@ -36,7 +36,8 @@ class LCMSettingField(baseio.TagInheritance):
             try:
                 field_type = [m for m in lcm_struct['members'] if m['name'] == names[0]][0]['type']
             except Exception:
-                print "\nerror in settings! settings field \""+names[0]+"\" not found in \""+lcm_struct['name']+"\"\n"
+                print "\nconftron settings error!"
+                print "settings field \""+names[0]+"\" not found in \""+lcm_struct['name']+"\"\n"
                 exit(1)
                 
             field_struct = self.search_structs(self.classname, field_type)
@@ -109,6 +110,10 @@ class LCMSetting(baseio.CHeader, baseio.LCMFile, baseio.CCode, baseio.TagInherit
         self.classname = parent.name
         self._inherit(parent)
         self.setting_struct = self.search_structs(self.classname, self.type)
+        if self.setting_struct == None:
+            print "\nConftron setting error!"
+            print "type \""+self.type+"\" not found in class \""+self.classname+"\"\n"
+            exit(1)
         self.lcm_folder = genconfig.lcm_folder
         self.die = 0
         self.make_fields(s.getchildren())
