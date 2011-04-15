@@ -22,9 +22,9 @@ import constants
 
 if __name__ == '__main__':
     try:
-        airframe_config = constants.AirframeConstants(argv[1])
+        constants_config = constants.AirframeConstants(argv[1])
     except IndexError:
         print "No airframe file given on command line; skipping."
     else:
-        airframe_config.write()
+        constants_config.write()
 

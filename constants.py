@@ -104,8 +104,8 @@ class Constants(baseio.CHeader, baseio.OctaveCode, baseio.Searchable):
                 
 class AirframeConstants(baseio.Searchable):
     def __init__(self, airframefile):
-        af = genconfig.airframe_config_folder + airframefile + ".xml"
-        self.defines = self.parse_airframe(af)
+        af = genconfig.constants_config_folder + airframefile + ".xml"
+        self.defines = self.parse_airframe_constants(af)
         
     def write(self):
         self.defines.to_define_h()
@@ -123,21 +123,21 @@ class AirframeConstants(baseio.Searchable):
 
         return filter(searchme, self.defines)
 
-    def parse_airframe(self, airframefile):
+    def parse_airframe_constants(self, airframe_constants_file):
         try: 
-            af = ET.ElementTree().parse(airframefile)
+            af = ET.ElementTree().parse(airframe_constants_file)
         except IOError:
             raise IndexError ## i'm so, so sorry, but Greg needs this soon
         except expat.ExpatError as e:
-            print "Error parsing airframe config file `" + airframefile + "':", e
+            print "Error parsing airframe constants config file `" + airframe_constants_file + "':", e
             exit(1)
         dielater = False
         for k in af.getchildren():
             if k.attrib.has_key('href'):
-                includename = dirname(airframefile) + "/" + k.attrib['href']
+                includename = dirname(airframe_constants_file) + "/" + k.attrib['href']
                 try:
                     k.attrib['subtree'] = ET.ElementTree().parse(includename).getchildren()
                 except expat.ExpatError as e:
-                    print "Error parsing airframe config file `" + includename + "':", e
+                    print "Error parsing airframe constants config file `" + includename + "':", e
                     dielater = True
         return Constants(af)
