@@ -33,7 +33,12 @@ class LCMSettingField(baseio.TagInheritance):
         def go_deep(name, lcm_struct):
             name = re.sub('\[[0-9]+\]','',name)
             names = name.split('.',1)
-            field_type = [m for m in lcm_struct['members'] if m['name'] == names[0]][0]['type']
+            try:
+                field_type = [m for m in lcm_struct['members'] if m['name'] == names[0]][0]['type']
+            except Exception:
+                print "\nerror in settings! settings field \""+names[0]+"\" not found in \""+lcm_struct['name']+"\"\n"
+                exit(1)
+                
             field_struct = self.search_structs(self.classname, field_type)
 
             if len(names) == 1:
