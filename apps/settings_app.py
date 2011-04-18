@@ -281,13 +281,20 @@ class Frame(wx.Frame):
 
         self.Show()
 
-
-
-if not sys.argv[1]:
-    print "please call settings_app.py with the name of the aircraft, e.g. wing7 or m5"
-    exit(1)
+################ get aircraft ##################
+if len(sys.argv) > 1:
+    aircraft = sys.argv[1]
+else:
+    try:
+        f = open('../../sim/aircraft_currently_built.txt')
+    except IOError:
+        print "couldn't read \"aircraft_currently_built.txt\", does it exist?"
+        exit(1)
+    aircraft = f.readline().strip()
+    f.close()
+print "using aircraft: \""+aircraft+"\""
 
 app = wx.App(redirect=False)   # Error messages go to popup window
-top = Frame("Conftron Mex-o-set", sys.argv[1])
+top = Frame("Conftron Mex-o-set", aircraft)
 top.Show(True)
 app.MainLoop()
