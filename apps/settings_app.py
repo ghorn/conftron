@@ -120,15 +120,16 @@ class TextSlider(wx.BoxSizer):
                 self.range = [ _min + float(k)*(_max - _min)/(self.N - 1.0) for k in range(0,self.N)]
 
         position = (0,0)
-        size = (300,20)
+        slider_size = (300,20)
+        text_size = (200,20)
         style = wx.SL_HORIZONTAL # | wx.SL_AUTOTICKS
 
         # set up attributes
-        self.slider = wx.Slider(self.frame, -1, self.value_to_slider(self.field['default']), 0, self.N - 1, position, size, style)
+        self.slider = wx.Slider(self.frame, -1, self.value_to_slider(self.field['default']), 0, self.N - 1, position, slider_size, style)
         self.slider.SetPageSize(1)
-        self.potential_value_text = wx.TextCtrl(self.frame, -1, "")
+        self.potential_value_text = wx.TextCtrl(self.frame, -1, "", size=text_size)
         self.name_text = wx.StaticText(self.frame, -1, self.field['name'])
-        self.current_value_text = wx.TextCtrl(self.frame, -1, "", style=wx.TE_READONLY)
+        self.current_value_text = wx.TextCtrl(self.frame, -1, "", size=text_size, style=wx.TE_READONLY)
 
         # draw current text
         self.potential_value_text.SetValue(str(self.slider_to_value()))
@@ -263,7 +264,7 @@ class Frame(wx.Frame):
 
 
     def __init__(self, title, aircraft):
-        wx.Frame.__init__(self, None, title=title, pos=(150,150), size=(650,500))
+        wx.Frame.__init__(self, None, title=title, pos=(150,150), size=(850,550))
 
         self.aircraft = aircraft
 
