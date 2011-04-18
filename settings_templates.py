@@ -194,7 +194,7 @@ given the specified bounded range of [%(min)s, %(max)s].
 
 ## emlc
 emlc_settings_template = ["""\
-function %(varname)s_out_ = %(classname)s_setting_%(varname)s(%(varname)s_in_) %%#eml
+function %(varname)s_out_ = %(classname)s_setting_%(type)s_%(varname)s(%(varname)s_in_) %%#eml
 
 if nargin == 1
     %(varname)s_out_ = %(type)s(%(varname)s_in_);

@@ -211,7 +211,8 @@ class LCMStruct(baseio.TagInheritance, baseio.IncludePasting, baseio.OctaveCode)
                     cf.write(self.type+"_out_.%(name)s = %(octave_type)s(zeros([%(octave_array)s]));\n" % m)
                 elif isinstance(self.parent.search(m['type']), LCMEnum):
                     # enums
-                    cf.write(self.type+"_out_.%(name)s = repmat(%(type)s(0), [%(octave_array)s]);\n" % m)
+                    m['enumfield_idx0'] = (self.parent.search(m['type'])).field_indices[0]
+                    cf.write((self.type+"_out_.%(name)s = repmat(%(type)s(%(enumfield_idx0)s), [%(octave_array)s]);\n") % m)
                 else:
                     # structs
                     cf.write(self.type+"_out_.%(name)s = repmat(%(type)s(), [%(octave_array)s]);\n" % m)
@@ -255,6 +256,13 @@ class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
     def __init__(self, enum, parent):
         self.__dict__.update(enum.attrib)
         self.fields = [f.strip() for f in self.fields.rsplit(',')]
+        # make enum indices
+        if not hasattr( self, 'first_index' ):
+            self.first_index = 0
+        else:
+            self.first_index = int(self.first_index)
+        self.field_indices = range(self.first_index, len(self.fields) + self.first_index)
+
         self.classname = parent.name
         self.type = self.name
         self._inherit(parent)
@@ -266,10 +274,10 @@ class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
         return cb
 
     def get_fields_with_indices(self):
-        return dict(zip(self.fields, range(len(self.fields))))
+        return dict(zip(self.fields, self.field_indices))
     
     def get_indices_with_fields(self):
-        return dict(zip(range(len(self.fields)), self.fields))
+        return dict(zip(self.field_indices, self.fields))
 
     def to_c(self):
         estr = ""
@@ -281,7 +289,7 @@ class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
         estr += "typedef " 
         estr += "enum {\n"
         for (k,f) in enumerate(self.fields):
-            estr += "  " + f + " = "+str(k)+",\n"
+            estr += "  " + f + " = "+str(self.field_indices[k])+",\n"
         estr += "} "
         if self.has_key('typedef'):
             estr += self.typedef
@@ -303,7 +311,7 @@ class LCMEnum(baseio.TagInheritance, baseio.OctaveCode):
         if self.has_key('comment'):
             estr += "/* " + self.comment + " */\n"
         estr += "typedef int " + self.name + ";\n"
-        defenum = zip(self.fields, range(len(self.fields)-1))
+        defenum = zip(self.fields, self.field_indices)
         for f, n in defenum:
             estr += "#define " + f + " " + str(n) + "\n"
         return estr
