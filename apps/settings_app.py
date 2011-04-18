@@ -29,6 +29,7 @@ import os
 import select
 import threading
 import lcm
+import re
 
 ap_project_root = os.environ.get('AP_PROJECT_ROOT')
 if ap_project_root == None:
@@ -182,6 +183,18 @@ class TextSlider(wx.BoxSizer):
 
     def set_message_attribute(self, message, fieldname, value):
             names = fieldname.split('.',1)
+
+            # this is the beginning of how arrays will be handled in the future
+#            search_str = '(\[[0-9]+\])+'
+#            g = re.search(search_str, names[0])
+#            if g != None:
+#                print "dir(message):"
+#                print dir(message)
+#                print g.group(0)
+#                print "new_name:"
+#                new_name = re.sub(search_str, '', names[0])
+#                print new_name
+#                print getattr(message, new_name)
 
             if len(names) == 1:
                 if isinstance(self.field['field_struct'], structs.LCMEnum):
